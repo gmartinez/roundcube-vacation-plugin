@@ -3,10 +3,6 @@ roundcube-vacation-2.x
 
 vacation / out-of-office plugin for RoundCube
 
-TAKE OVER MAINTAINERSHIP
-------------------------
-This code is **UNMAINTAINED**!!! Please fork and take new ownership. 
-
 
 About
 -----
@@ -228,13 +224,4 @@ Credits
 - Squirrelmail team for the setuid backend binary
 - Peter Ruiter for his initial work on the plugin.
 - Rick Saul and Johnson Chow for testing
-
-
-patches, feedback and suggestions
---------------------------------
-**UNMAINTAINED** 
-
-I (Roman) lost my interesstes in using roundcube as web-email cause I am not developing roundcube for our customers of nine.ch (I left the company) and using another technology for my own email. 
-
-Please submit patches and suggestions *not* in this github repository
 
