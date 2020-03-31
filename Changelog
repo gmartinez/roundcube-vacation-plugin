@@ -1,5 +1,9 @@
 CHANGELOG for the Roundcube vacation plugin
 
+Version 20200301
+- upgraded to Roundcube 1.4
+- added Elastic skin
+
 Version 20180201
 - upgraded to Roundcube 1.3
 
