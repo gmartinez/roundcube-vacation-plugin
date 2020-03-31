@@ -42,6 +42,7 @@ class vacation extends rcube_plugin {
         $this->v = VacationDriverFactory::Create($this->inicfg['driver']);
 
         $this->v->setIniConfig($this->inicfg);
+        $this->add_hook('settings_actions', array($this, 'settings_actions'));
         $this->register_action('plugin.vacation', array($this, 'vacation_init'));
         $this->register_action('plugin.vacation-save', array($this, 'vacation_save'));
         $this->register_handler('plugin.vacation_form', array($this, 'vacation_form'));
@@ -57,6 +58,20 @@ class vacation extends rcube_plugin {
         $this->v->setDotForwardConfig($this->inicfg['driver'],$this->vcObject->getDotForwardCfg());
     }
     
+    function settings_actions($args)
+    {
+        // register as settings action
+        $args['actions'][] = array(
+            'action' => 'plugin.vacation',
+            'class'  => 'vacation',
+            'label'  => 'vacation',
+            'title'  => 'vacation',
+            'domain' => 'vacation',
+        );
+
+        return $args;
+    }
+
     public function vacation_init() {
         $this->add_texts('localization/', array('vacation'));
         $rcmail = rcmail::get_instance();
@@ -70,9 +85,9 @@ class vacation extends rcube_plugin {
 
         // Initialize the driver
         $this->v->init();
-
+        
         if ($this->v->save()) {
-//          $this->v->getActionText() Dummy for now
+//         $this->v->getActionText();// Dummy for now
             $rcmail->output->show_message($this->gettext("success_changed"), 'confirmation');
         } else {
             $rcmail->output->show_message($this->gettext("failed"), 'error');
@@ -100,44 +115,41 @@ class vacation extends rcube_plugin {
         // Initialize the driver
         $this->v->init();
         $settings = $this->v->_get();
-
+        
         // Load default body & subject if present.
         if (empty($settings['subject']) && $defaults = $this->v->loadDefaults()) {
             $settings['subject'] = $defaults['subject'];
             $settings['body'] = $defaults['body'];
         }
 
-        $rcmail->output->set_env('product_name', $rcmail->config->get('product_name'));
-        // return the complete edit form as table
+	    $table = new html_table(array('cols' => 2,'class' => 'propform cols-sm-6-6'));
 
-        $out = '<style>.uibox{overflow-y:scroll;}</style>';
-        $out .= '<fieldset><legend>' . $this->gettext('outofoffice') . ' ::: ' . $rcmail->user->data['username'] . '</legend>' . "\n";
-        $out .= '<table class="propform"><tbody>';
-        // show autoresponder properties
-
+        $table->set_row_attribs(array('class' => 'form-group row'));
+        $table->add('title col-form-label', html::label(array('for' => 'vacation_form', 'class' => 'col-form-label'), $this->gettext('outofoffice')));
+        $table->add('col-sm-6', null);
+    
         // Auto-reply enabled
-        $field_id = 'vacation_enabled';
+	    $field_id = 'vacation_enabled';
         $input_autoresponderactive = new html_checkbox(array('name' => '_vacation_enabled', 'id' => $field_id, 'value' => 1));
-        $out .= sprintf("<tr><td class=\"title\"><label for=\"%s\">%s</label></td><td>%s</td></tr>\n",
-                $field_id,
-                rcube_utils::rep_specialchars_output($this->gettext('autoreply')),
-                $input_autoresponderactive->show($settings['enabled']));
+        $table->set_row_attribs(array('class' => 'form-group row'));
+	    $table->add('title col-sm-6', html::label(array('for' => 'vacation_enabled', 'class' => 'col-form-label'), $this->gettext('autoreply')));
+        $table->add('col-sm-6', $input_autoresponderactive->show($settings['enabled']));
 
         // Subject
         $field_id = 'vacation_subject';
-        $input_autorespondersubject = new html_inputfield(array('name' => '_vacation_subject', 'id' => $field_id, 'size' => 90));
-        $out .= sprintf("<tr><td class=\"title\"><label for=\"%s\">%s</label></td><td>%s</td></tr>\n",
-                $field_id,
-                rcube_utils::rep_specialchars_output($this->gettext('autoreplysubject')),
-                $input_autorespondersubject->show($settings['subject']));
+        $input_autorespondersubject = new html_inputfield(array('name' => '_vacation_subject', 'id' => $field_id, 'class' => 'form-control', 'size' => 50));
+        $table->set_row_attribs(array('class' => 'form-group row'));
+        $table->add('title col-sm-6', html::label(array('for' => 'vacation_subject', 'class' => 'col-form-label'), $this->gettext('subject')));
+        $table->add('col-sm-6', $input_autorespondersubject->show($settings['subject']));
 
         // Out of office body
         $field_id = 'vacation_body';
-        $input_autoresponderbody = new html_textarea(array('name' => '_vacation_body', 'id' => $field_id, 'cols' => 88, 'rows' => 20));
-        $out .= sprintf("<tr><td class=\"title\"><label for=\"%s\">%s</label></td><td>%s</td></tr>\n",
-                $field_id,
-                rcube_utils::rep_specialchars_output($this->gettext('autoreplymessage')),
-                $input_autoresponderbody->show($settings['body']));
+        $input_autoresponderbody = new html_textarea(array('name' => '_vacation_body', 'id' => $field_id, 'class' => 'form-control', 'cols' => 60, 'rows' => 8));
+        $table->set_row_attribs(array('class' => 'form-group row'));
+        $table->add('title col-sm-6', html::label(array('for' => 'vacation_body', 'class' => 'col-form-label'), $this->gettext('body')));
+        $table->add('col-sm-6', $input_autoresponderbody->show($settings['body']));
+
+        $out .= html::tag('fieldset', $class, html::tag('legend', null, $this->gettext('vacation')) . $table->show());
 
         /* We only use aliases for .forward and only if it's enabled in the config*/
         if ($this->v->useAliases()) {
@@ -148,50 +160,56 @@ class vacation extends rcube_plugin {
             if ($hasMultipleIdentities == '') $size = 15;
 
             $field_id = 'vacation_aliases';
-            $input_autoresponderalias = new html_inputfield(array('name' => '_vacation_aliases', 'id' => $field_id, 'size' => 75+$size));
-            $out .= '<tr><td class=\"title\">' . $this->gettext('separate_alias') . '</td></tr>';
+            $input_autoresponderalias = new html_inputfield(array('name' => '_vacation_aliases', 'id' => $field_id, 'class' => 'form-control', 'size' => 75+$size));
+            $table->set_row_attribs(array('class' => 'form-group row'));
+            $table->add(null, $input_autoresponderalias->show($settings['separate_alias']));
+            $table->add(null, null);
+            $table->set_row_attribs(array('class' => 'form-group row'));
+            $table->add('title', html::label(array('for' => 'vacation_aliases', 'class' => 'col-form-label'), $this->gettext('aliases')));
+            $table->add(null, $input_autoresponderalias->show($settings['alias']));
 
             // Inputfield with button
-            $out .= sprintf('<tr><td class=\"title\"><label for="%s">%s</label></td><td>%s', 
-                $field_id, rcube_utils::rep_specialchars_output($this->gettext('aliases')),
-                $input_autoresponderalias->show($settings['aliases']));
-            if ($hasMultipleIdentities!='')
-                $out .= sprintf('<input type="button" id="aliaslink" class="button" value="%s"/>',
-            rcube_utils::rep_specialchars_output($this->gettext('aliasesbutton')));
-            $out .= "</td></tr>";
+            if ($hasMultipleIdentities!='') {
+                $aliases = new html_inputfield(array(
+                    'type'    => 'button',
+                    'href'    => '#',
+                    'class' => 'button',
+                    'label'      => $this->gettext['aliasesbutton'],
+                    'title'      => $this->gettext['aliasesbutton'],
+                ));
 
+            }   
+            $out .= html::div(array(
+                'class'           => 'button',
+            ), "$aliases");
         }
-        $out .= '</tbody></table>'.PHP_EOL.'</fieldset>';
-
-        $out .= '<fieldset><legend>' . $this->gettext('forward') . '</legend>';
-        $out .= '<table class="propform"><tbody>';
+        $table = new html_table(array('cols' => 2,'class' => 'propform cols-sm-6-6'));
 
         // Keep a local copy of the mail
         $field_id = 'vacation_keepcopy';
         $input_localcopy = new html_checkbox(array('name' => '_vacation_keepcopy', 'id' => $field_id, 'value' => 1));
-        $out .= sprintf("<tr><td class=\"title\"><label for=\"%s\">%s</label></td><td>%s</td></tr>\n",
-            $field_id,
-            rcube_utils::rep_specialchars_output($this->gettext('keepcopy')),
-            $input_localcopy->show($settings['keepcopy']));
+        $table->set_row_attribs(array('class' => 'form-group row'));
+        $table->add('title col-sm-6', html::label(array('for' => 'vacation_keepcopy', 'class' => 'col-form-label'), $this->gettext('keepcopy')));
+        $table->add('col-sm-6', $input_localcopy->show($settings['keepcopy']));
 
         // Information on the forward in a seperate fieldset.
         if (! isset($this->inicfg['disable_forward']) || ( isset($this->inicfg['disable_forward']) && $this->inicfg['disable_forward']==false))
-        {
-            $out .= '<tr><td>' . $this->gettext('separate_forward') . '</td></tr>';
+        {$table->set_row_attribs(array('class' => 'form-group row'));
+
+            $table->add('title col-sm-6', html::label('separate_forward', $this->gettext('separate_forward')));
+            $table->add('col-sm-6', null);
 
             // Forward mail to another account
             $field_id = 'vacation_forward';
-            $input_autoresponderforward = new html_inputfield(array('name' => '_vacation_forward', 'id' => $field_id, 'size' => 90));
-            $out .= sprintf("<tr><td class=\"title\"><label for=\"%s\">%s</label></td><td>%s<br/>%s</td></tr>\n",
-                $field_id,
-                rcube_utils::rep_specialchars_output($this->gettext('forwardingaddresses')),
-                $input_autoresponderforward->show($settings['forward']),
-                $this->gettext('separate_forward'));
-
+            $input_autoresponderforward = new html_inputfield(array('name' => '_vacation_forward', 'id' => $field_id, 'class' => 'form-control', 'size' => 50));
+            $table->set_row_attribs(array('class' => 'form-group row'));
+            $table->add('title col-sm-6', html::label(array('for' => 'vacation_forward', 'class' => 'col-form-label'), $this->gettext('forwardingaddresses')));
+            $table->add('col-sm-6', $input_autoresponderforward->show($settings['vacation_forward']));
         }
-        $out .= "</tbody></table></fieldset>\n";
-
+        $out .= html::tag('fieldset', $class, html::tag('legend', null, $this->gettext('forward')) . $table->show());
         $rcmail->output->add_gui_object('vacationform', 'vacation-form');
+
+
         return $out;
     }
 }
