@@ -1,8 +1,8 @@
 roundcube-vacation-2.x
 ======================
 
-vacation / out-of-office plugin for RoundCube
-elastic skin support
+- vacation / out-of-office plugin for RoundCube
+- elastic skin support
 
 
 About
