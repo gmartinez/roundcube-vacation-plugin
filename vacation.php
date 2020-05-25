@@ -204,7 +204,7 @@ class vacation extends rcube_plugin {
             $input_autoresponderforward = new html_inputfield(array('name' => '_vacation_forward', 'id' => $field_id, 'class' => 'form-control', 'size' => 50));
             $table->set_row_attribs(array('class' => 'form-group row'));
             $table->add('title col-sm-6', html::label(array('for' => 'vacation_forward', 'class' => 'col-form-label'), $this->gettext('forwardingaddresses')));
-            $table->add('col-sm-6', $input_autoresponderforward->show($settings['vacation_forward']));
+            $table->add('col-sm-6', $input_autoresponderforward->show($settings['forward']));
         }
         $out .= html::tag('fieldset', $class, html::tag('legend', null, $this->gettext('forward')) . $table->show());
         $rcmail->output->add_gui_object('vacationform', 'vacation-form');
