@@ -129,12 +129,41 @@ class vacation extends rcube_plugin {
         $table->add('col-sm-6', null);
     
         // Auto-reply enabled
-	    $field_id = 'vacation_enabled';
-        $input_autoresponderactive = new html_checkbox(array('name' => '_vacation_enabled', 'id' => $field_id, 'value' => 1));
-        $table->set_row_attribs(array('class' => 'form-group row'));
-	    $table->add('title col-sm-6', html::label(array('for' => 'vacation_enabled', 'class' => 'col-form-label'), $this->gettext('autoreply')));
-        $table->add('col-sm-6', $input_autoresponderactive->show($settings['enabled']));
+        if (!isset($this->inicfg['disable_enabled']) || (isset($this->inicfg['disable_enabled']) && $this->inicfg['disable_enabled']==false)) {
+			$field_id = 'vacation_enabled';
+			$input_autoresponderactive = new html_checkbox(array('name' => '_vacation_enabled', 'id' => $field_id, 'value' => 1));
+			$table->set_row_attribs(array('class' => 'form-group row'));
+			$table->add('title col-sm-6', html::label(array('for' => 'vacation_enabled', 'class' => 'col-form-label'), $this->gettext('autoreply')));
+			$table->add('col-sm-6', $input_autoresponderactive->show($settings['enabled']));
+		}
 
+        // Interval (if cpanel)
+        if ($this->inicfg['driver']=='cpanel') {
+			$field_id = 'vacation_interval';
+			$input_autoresponderinterval = new html_inputfield(array('name' => '_vacation_interval', 'id' => $field_id, 'value' => '', 'placeholder'=>'eg; 1'));
+			$table->set_row_attribs(array('class' => 'form-group row'));
+			$table->add('title col-sm-6', html::label(array('for' => 'vacation_interval', 'class' => 'col-form-label'), $this->gettext('interval')));
+			$table->add('col-sm-6', $input_autoresponderinterval->show($settings['interval']));
+			
+			$field_id = 'vacation_start';
+			$input_autoresponderstart = new html_inputfield(array('name' => '_vacation_start', 'id' => $field_id, 'value' => '', 'placeholder'=>'eg; '.date('Y-m-d 17:00', strtotime('today'))));
+			$table->set_row_attribs(array('class' => 'form-group row'));
+			$table->add('title col-sm-6', html::label(array('for' => 'vacation_start', 'class' => 'col-form-label'), $this->gettext('start')));
+			$table->add('col-sm-6', $input_autoresponderstart->show($settings['start']));			
+						
+			$field_id = 'vacation_stop';
+			$input_autoresponderstop = new html_inputfield(array('name' => '_vacation_stop', 'id' => $field_id, 'value' => '', 'placeholder'=>'eg; '.date('Y-m-d 17:00', strtotime('today +7 days'))));
+			$table->set_row_attribs(array('class' => 'form-group row'));
+			$table->add('title col-sm-6', html::label(array('for' => 'vacation_stop', 'class' => 'col-form-label'), $this->gettext('stop')));
+			$table->add('col-sm-6', $input_autoresponderstop->show($settings['stop']));						
+			
+			$field_id = 'vacation_html';
+			$input_autoresponderhtml = new html_checkbox(array('name' => '_vacation_html', 'id' => $field_id, 'value' => 1));
+			$table->set_row_attribs(array('class' => 'form-group row'));
+			$table->add('title col-sm-6', html::label(array('for' => 'vacation_html', 'class' => 'col-form-label'), $this->gettext('html')));
+			$table->add('col-sm-6', $input_autoresponderhtml->show($settings['html']));
+		}
+		
         // Subject
         $field_id = 'vacation_subject';
         $input_autorespondersubject = new html_inputfield(array('name' => '_vacation_subject', 'id' => $field_id, 'class' => 'form-control', 'size' => 50));
@@ -144,7 +173,7 @@ class vacation extends rcube_plugin {
 
         // Out of office body
         $field_id = 'vacation_body';
-        $input_autoresponderbody = new html_textarea(array('name' => '_vacation_body', 'id' => $field_id, 'class' => 'form-control', 'cols' => 60, 'rows' => 8));
+        $input_autoresponderbody = new html_textarea(array('name' => '_vacation_body', 'id' => $field_id, 'class' => 'form-control', 'cols' => 60, 'rows' => 16));
         $table->set_row_attribs(array('class' => 'form-group row'));
         $table->add('title col-sm-6', html::label(array('for' => 'vacation_body', 'class' => 'col-form-label'), $this->gettext('body')));
         $table->add('col-sm-6', $input_autoresponderbody->show($settings['body']));
@@ -183,18 +212,20 @@ class vacation extends rcube_plugin {
                 'class'           => 'button',
             ), "$aliases");
         }
+		
         $table = new html_table(array('cols' => 2,'class' => 'propform cols-sm-6-6'));
-
         // Keep a local copy of the mail
-        $field_id = 'vacation_keepcopy';
-        $input_localcopy = new html_checkbox(array('name' => '_vacation_keepcopy', 'id' => $field_id, 'value' => 1));
-        $table->set_row_attribs(array('class' => 'form-group row'));
-        $table->add('title col-sm-6', html::label(array('for' => 'vacation_keepcopy', 'class' => 'col-form-label'), $this->gettext('keepcopy')));
-        $table->add('col-sm-6', $input_localcopy->show($settings['keepcopy']));
-
+        if (!isset($this->inicfg['disable_keepcopy']) || (isset($this->inicfg['disable_keepcopy']) && $this->inicfg['disable_keepcopy']==false)) {
+			$field_id = 'vacation_keepcopy';
+			$input_localcopy = new html_checkbox(array('name' => '_vacation_keepcopy', 'id' => $field_id, 'value' => 1));
+			$table->set_row_attribs(array('class' => 'form-group row'));
+			$table->add('title col-sm-6', html::label(array('for' => 'vacation_keepcopy', 'class' => 'col-form-label'), $this->gettext('keepcopy')));
+			$table->add('col-sm-6', $input_localcopy->show($settings['keepcopy']));
+		}
+	
         // Information on the forward in a seperate fieldset.
-        if (! isset($this->inicfg['disable_forward']) || ( isset($this->inicfg['disable_forward']) && $this->inicfg['disable_forward']==false))
-        {$table->set_row_attribs(array('class' => 'form-group row'));
+        if (!isset($this->inicfg['disable_forward']) || (isset($this->inicfg['disable_forward']) && $this->inicfg['disable_forward']==false)) {
+			$table->set_row_attribs(array('class' => 'form-group row'));
 
             $table->add('title col-sm-6', html::label('separate_forward', $this->gettext('separate_forward')));
             $table->add('col-sm-6', null);
@@ -206,7 +237,7 @@ class vacation extends rcube_plugin {
             $table->add('title col-sm-6', html::label(array('for' => 'vacation_forward', 'class' => 'col-form-label'), $this->gettext('forwardingaddresses')));
             $table->add('col-sm-6', $input_autoresponderforward->show($settings['forward']));
         }
-        $out .= html::tag('fieldset', $class, html::tag('legend', null, $this->gettext('forward')) . $table->show());
+        $out .= $table->size() ? html::tag('fieldset', $class, html::tag('legend', null, $this->gettext('forward')) . $table->show()) : "";
         $rcmail->output->add_gui_object('vacationform', 'vacation-form');
 
 

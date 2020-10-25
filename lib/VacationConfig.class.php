@@ -16,7 +16,7 @@ class VacationConfig
 	private $currentHost = null;
 	private $iniArr,$currentArr = array();
 	private $hasError = false;
-	private $allowedOptions = array('none'=>array(),'ftp'=>array(),'sshftp'=>array(),'virtual'=>array(),'sieve'=>array(),'setuid'=>array());
+	private $allowedOptions = array('none'=>array(),'ftp'=>array(),'sshftp'=>array(),'virtual'=>array(),'sieve'=>array(),'setuid'=>array(),'cpanel'=>array());
 
 	public function __construct()
 	{
@@ -28,6 +28,7 @@ class VacationConfig
 		$this->allowedOptions['setuid'] = array('executable'=>'required','disable_forward'=>'optional');
 		$this->allowedOptions['sieve'] = array('server'=>'optional','disable_forward'=>'optional',
                                                         'port'=>'optional','tls'=>'optional');
+		$this->allowedOptions['cpanel'] = array('server'=>'optional','ftpuser'=>'required','ftppass'=>'required','passive'=>'optional','disable_forward'=>'optional');
 		$this->parseIni();
 	}
 
@@ -87,7 +88,7 @@ class VacationConfig
 
 	private function setServer()
 	{
-		if (in_array($this->currentArr['driver'],array('ftp','sshftp','sieve')) && empty($this->currentArr['server']))
+		if (in_array($this->currentArr['driver'],array('ftp','sshftp','sieve','cpanel')) && empty($this->currentArr['server']))
 		{
 			$this->currentArr['server'] = $this->currentHost;
 		}

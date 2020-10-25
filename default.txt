@@ -1,8 +1,10 @@
-Hi,
+Hola,
 
-Please ask your system administrator to translate this file (default.txt).
+Gracias por su contacto.
 
-He can set a better default text for out of office replies.
+Me encuentro fuera de la oficina hasta el próximo {fecha}, por temas que no puedan esperar por favor comunicarse con {email_reemplazo}
 
-Feel free to edit this text.
+Desde ya muchas gracias.
 
+---
+{firma}

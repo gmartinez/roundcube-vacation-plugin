@@ -51,25 +51,25 @@ abstract class VacationDriver {
 		return (isset($this->dotforward['alias_identities']) && $this->dotforward['alias_identities']);
 	}
 
-public function loadDefaults() {
-    // Load default subject and body.
+	public function loadDefaults() {
+		// Load default subject and body.
 
-    if (empty($this->cfg['body'])) return false;
+		if (empty($this->cfg['body'])) return false;
 
 
-    $file = "plugins/vacation/" . $this->cfg['body'];
-    
+		$file = "plugins/vacation/" . $this->cfg['body'];
+		
 
-    if (is_readable($file)) {
-        $defaults = array('subject'=>$this->cfg['subject']);
-        $defaults['body'] = file_get_contents($file);
-        return $defaults;
-    } else {
-        raise_error(array('code' => 601, 'type' => 'php', 'file' => __FILE__,
-                    'message' => sprintf("Vacation plugin: s cannot be opened", $file)
-                ), true, true);
-    }
-}
+		if (is_readable($file)) {
+			$defaults = array('subject'=>$this->cfg['subject']);
+			$defaults['body'] = file_get_contents($file);
+			return $defaults;
+		} else {
+			raise_error(array('code' => 601, 'type' => 'php', 'file' => __FILE__,
+						'message' => sprintf("Vacation plugin: s cannot be opened", $file)
+					), true, true);
+		}
+	}
 	
 	
 
